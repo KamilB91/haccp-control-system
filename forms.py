@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm, Form
-from wtforms import StringField, widgets, SelectMultipleField, FormField, SelectField, TimeField, DecimalField
+from wtforms import StringField, widgets, SelectMultipleField, FormField, SelectField, TimeField, IntegerField
 from wtforms.validators import DataRequired, ValidationError, Length
 from config import INGREDIENT_CATEGORY
 
@@ -76,7 +76,7 @@ class ProcessDetails(FlaskForm):
             DataRequired()
         ]
     )
-    temperature = DecimalField(
+    temperature = IntegerField(
         'temp.',
         validators=[
             DataRequired()

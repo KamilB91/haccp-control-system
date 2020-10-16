@@ -128,11 +128,14 @@ def process(process_type):
     return render_template('process.html', form=form, cooked_products=cooked_products, process_type=process_type)
 
 
-@app.route('/update_process/<process_type>', methods=['POST', 'GET'])
-def update_process(process_type):
+@app.route('/update_process/<process_type>/<process_id>', methods=['POST', 'GET'])
+def update_process(process_type, process_id):
     if request.method == 'POST':
-        for field in request.form.values():
-            print(field)
+        process = models.Process.get(id=process_id)
+        process.start_time = request.form['start']
+        process.finish_time = request.form['finish']
+        process.temperature = request.form['temp']
+        process.save()
     return redirect(url_for('process', process_type=process_type))
 
 

@@ -17,13 +17,15 @@
             {% set processes = product.processes %}
             {% for process in processes %}
                 {% if process.process_type == process_type and process.finish_time == None %}
-                    <form class="row" action="{{ url_for('update_process', process_type=process_type) }}" method="post">
+                    <form class="row" action="{{ url_for('update_process', process_type=process_type, process_id=process.id) }}" method="post">
                         <input id="name" type="text" name="name" value="{{ product.name }}">
                         <label for="name"></label>
                         <input id="start" name="start" type="time">
                         <label for="start">start</label>
                         <input id="finish" name="finish" type="time">
                         <label for="finish">finish</label>
+                        <input id="temp" name="temp" type="number">
+                        <label for="temp">temp</label>
                         <button type="submit">Finish</button>
                     </form>
                 {% endif %}
