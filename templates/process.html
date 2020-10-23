@@ -2,35 +2,75 @@
 {% from 'macros.html' import  render_field %}
 
 {% block content %}
-    <div class="column">
-        <form action="{{ url_for('process', process_type=process_type) }}" method="post" class="row">
-            {{ form.hidden_tag() }}
-            {% for field in form %}
-                    <div class="element">
-                        {{ render_field(field) }}
-                    </div>
-                {% endfor %}
-            <button type="submit">Add</button>
-        </form>
+    {% if production_day == None %}
+        <a href="{{ url_for('production_day', process_type=process_type) }}"><strong>Start</strong></a>
+    {% else %}
         <div class="column">
-        {% for product in cooked_products %}
-            {% set processes = product.processes %}
-            {% for process in processes %}
-                {% if process.process_type == process_type and process.finish_time == None %}
-                    <form class="row" action="{{ url_for('update_process', process_type=process_type, process_id=process.id) }}" method="post">
-                        <input id="name" type="text" name="name" value="{{ product.name }}">
-                        <label for="name"></label>
-                        <input id="start" name="start" type="time">
-                        <label for="start">start</label>
-                        <input id="finish" name="finish" type="time">
-                        <label for="finish">finish</label>
-                        <input id="temp" name="temp" type="number">
-                        <label for="temp">temp</label>
-                        <button type="submit">Finish</button>
-                    </form>
-                {% endif %}
+            <h3>Date: {{ production_day.date }} Batch: {{ production_day.batch }}</h3>
+            {% if process_type != 'cooling' %}
+                <form action="{{ url_for('process', process_type=process_type) }}" method="post" class="row" style="justify-content: center">
+                    {{ form.hidden_tag() }}
+                    {% for field in form %}
+                        <div class="element">
+                            {{ render_field(field) }}
+                        </div>
+                    {% endfor %}
+                    <button type="submit">Add</button>
+                </form>
+            {% endif %}
+            <div class="column">
+            {% set pt = process_type.split('-') %}
+            <h3>{{ pt[0].capitalize() }}</h3>
+            {% for product in cooked_products %}
+                {% set processes = product.processes %}
+                {% for process in processes %}
+                    {% if (process.process_type == process_type and process.process_type != 'assembly-cooking' and process.finish_time == None)
+                            or (process_type == 'assembly-cooking' and process.process_type == None)
+                            or (process_type == 'assembly-cooking' and process.process_type == 'assembly-assembly'
+                                                                   and process.finish_time == None) %}
+                        <form class="row" action="{{ url_for('update_process', process_id=process.id) }}" method="post">
+                            <label>{{ product.name }}:  </label>
+                            <label for="start">Start: </label>
+                            <input id="start" name="start" type="time">
+                            <label for="finish">Finish: </label>
+                            <input id="finish" name="finish" type="time">
+                            <label for="temp">Temp. </label>
+                            <input id="temp" name="temp" type="number">
+                            {% if process_type == 'assembly-cooking' and process.process_type == None %}
+                                <label for="process">Process: </label>
+                                <select id="process" name="process">
+                                    <option value="assembly">Assembly</option>
+                                    <option value="assembly-cooling">Cooling</option>
+                                    <option value="assembly-assembly">Assembly/Cooking</option>
+                                    <option value="cooling-cooling">Assembly/Cooling</option>
+                                </select>
+                            {% endif %}
+                            <button type="submit">Finish</button>
+                        </form>
+                    {% endif %}
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
+            {% if process_type == 'assembly-cooking' %}
+                <h3>{{ pt[1].capitalize() }}</h3>
+                {% for product in cooked_products %}
+                    {% set processes = product.processes %}
+                    {% for process in processes %}
+                        {% if process.process_type == 'assembly-cooking' and process.finish_time == None %}
+                            <form class="row" action="{{ url_for('update_process', process_id=process.id) }}" method="post">
+                                <label>{{ product.name }}:  </label>
+                                <label for="start">Start: </label>
+                                <input id="start" name="start" type="time">
+                                <label for="finish">Finish: </label>
+                                <input id="finish" name="finish" type="time">
+                                <label for="temp">Temp. </label>
+                                <input id="temp" name="temp" type="number">
+                                <button type="submit">Finish</button>
+                            </form>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+            </div>
         </div>
-    </div>
+    {% endif %}
 {% endblock %}

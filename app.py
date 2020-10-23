@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.secret_key = 'nHJBKJhkj3uhun3enml,;LK@JiwnNme,,e2moke2e,l1moiouUu2m3oiIIOII(&&uh42*@'
 
 models.initialize()
-
+models.test()
 
 # login_manager = LoginManager()
 # login_manager.init_app(app)
@@ -39,6 +39,15 @@ def after_request(response):
 @app.route('/')
 def index():
     return render_template('layout.html')
+
+
+@app.route('/production_day/<process_type>')
+def production_day(process_type):
+    models.ProductionDay.create(
+        date=datetime.date.today().strftime('%x'),
+        batch=datetime.date.today().strftime('%y%j')
+    )
+    return redirect(url_for('process', process_type=process_type))
 
 
 @app.route('/add_ingredient', methods=('GET', 'POST'))
@@ -112,31 +121,79 @@ def deactivate_batch_code(batch_code_id, ingredient_id):
 
 @app.route('/process/<process_type>', methods=['POST', 'GET'])
 def process(process_type):
+    production_day = models.ProductionDay.get_or_none(date=datetime.date.today())
     forms.PickProduct.product = forms.SelectField('Product', choices=[x.name for x in models.Product.select()])
     form = forms.PickProduct()
     cooked_products = models.CookedProduct.select()
     if form.validate_on_submit():
         models.CookedProduct.create(
             name=form.product.data,
-            date=datetime.datetime.now()
+            date=datetime.date.today()
         )
         product = models.CookedProduct.get(name=form.product.data)
-        models.Process.create(
-            process_type=process_type,
-            product=product
-        )
-    return render_template('process.html', form=form, cooked_products=cooked_products, process_type=process_type)
+        if process_type == 'assembly-cooking':
+            models.Process.create(
+                product=product
+            )
+        else:
+            models.Process.create(
+                process_type=process_type,
+                product=product
+            )
+
+        product = models.Product.get(name=form.product.data)
+        ingredients = product.get_ingredients()
+        for i in ingredients:
+            print(i.product.name, i.ingredient.name)
+
+    return render_template('process.html', form=form, cooked_products=cooked_products,
+                           process_type=process_type, production_day=production_day)
 
 
-@app.route('/update_process/<process_type>/<process_id>', methods=['POST', 'GET'])
-def update_process(process_type, process_id):
+@app.route('/update_process/<process_id>', methods=['POST', 'GET'])
+def update_process(process_id):
+    process_to_update = models.Process.get(id=process_id)
+    product = models.CookedProduct.get(id=process_to_update.product.id)
     if request.method == 'POST':
-        process = models.Process.get(id=process_id)
-        process.start_time = request.form['start']
-        process.finish_time = request.form['finish']
-        process.temperature = request.form['temp']
-        process.save()
-    return redirect(url_for('process', process_type=process_type))
+        process_to_update.start_time = request.form['start']
+        process_to_update.finish_time = request.form['finish']
+        process_to_update.temperature = request.form['temp']
+
+        if process_to_update.process_type == 'cooking':
+            models.Process.create(
+                product=product
+            )
+        elif process_to_update.process_type == 'assembly-cooking':
+            models.Process.create(
+                process_type='cooling',
+                product=product
+            )
+
+        try:
+            if request.form['process']:
+                process_to_update.process_type = request.form['process']
+                if request.form['process'] == 'assembly-assembly':
+                    models.Process.create(
+                        process_type='assembly-cooking',
+                        product=product
+                    )
+                elif request.form['process'] == 'cooling-cooling':
+                    models.Process.create(
+                        process_type='cooling',
+                        product=product
+                    )
+
+        except KeyError:
+            pass
+
+        process_to_update.save()
+
+    return redirect(url_for('process', process_type=process_to_update.process_type))
+
+
+@app.route('/low-risk')
+def low_risk():
+    pass
 
 
 if __name__ == '__main__':
