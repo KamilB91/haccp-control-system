@@ -124,26 +124,27 @@ def process(process_type):
     today = models.ProductionDay.get_or_none(date=datetime.date.today())
     forms.PickProduct.product = forms.SelectField('Product', choices=[x.name for x in models.Product.select()])
     form = forms.PickProduct()
+    # select all products
     cooked_products = models.CookedProduct.select()
     if form.validate_on_submit():
-        models.CookedProduct.create(
+        # this form in process.html is not provided for Packing room(process_type=cooling)
+        # creates a product to be cooked and its first process
+        product = models.CookedProduct.create(
             name=form.product.data,
             date=datetime.date.today()
         )
-        product = models.CookedProduct.get(name=form.product.data)
+        # if process_type comes from assembly, process creates without process type,
+        # that will be chosen later in update_process via select part of form for each product process in processes.html
         if process_type == 'assembly-cooking':
             models.Process.create(
                 product=product
             )
-        else:
+        elif process_type == 'cooking':
+            # if process_type came from the kitchen then process is created with process_type of 'cooking'
             models.Process.create(
                 process_type=process_type,
                 product=product
             )
-        product = models.Product.get(name=form.product.data)
-        ingredients = product.get_ingredients()
-        for i in ingredients:
-            print(i.product.name, i.ingredient.name)
 
     return render_template('process.html', form=form, cooked_products=cooked_products,
                            process_type=process_type, production_day=today)
