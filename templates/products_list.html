@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="column">
+        <ol>
+        {% for product in products %}
+            <li><h4><a href="{{ url_for('product_list', product=product.name) }}">{{ product.name }}</a></h4></li>
+        {% endfor %}
+        </ol>
+    </div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'layout.html' %}
+{% from 'macros.html' import render_field %}
+
+{% block content %}
+    <div class="column" style="float: left">
+        <form action="" method="post">
+            {{ form.hidden_tag() }}
+            <div class="row">
+                <h3>{{ ingredient.name }}:</h3>
+                {% for field in form %}
+                    <div style="padding-top: 20px; padding-left: 20px">{{ render_field(field) }}</div>
+                {% endfor %}
+                <button type="submit" style="margin-top: 20px">Add</button>
+            </div>
+        </form>
+        <div class="row">
+            <div class="column">
+                <h3>New</h3>
+                {% for batch_code in ingredient.batch_codes %}
+                    {% if batch_code.active %}
+                        <h5 class="element">{{ batch_code.batch_code }}
+                            <a href="{{ url_for('deactivate_batch_code', batch_code_id=batch_code.id, ingredient_id=ingredient.id) }}">Spent</a></h5>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="column">
+                <h3>Old</h3>
+                {% for batch_code in ingredient.batch_codes %}
+                    {% if not batch_code.active %}
+                        <h5 class="element">{{ batch_code.batch_code }}</h5>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <a href="{{ url_for('ingredients_list') }}">Back</a>
+    </div>
+{% endblock %}

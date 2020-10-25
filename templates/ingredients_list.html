@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    {% for category in categories %}
+        <div class="column" style="width: 20%;">
+            <h3 style="padding-left: 10px">{{ category }}:</h3>
+            <hr style="width: 100%">
+            <ol>
+            {% for ingredient in ingredients %}
+                {% if ingredient.category == category %}
+                    <li><h4><a
+                            href="{{ url_for('ingredient', ingredient_id=ingredient.id) }}">{{ ingredient.name }}</a>
+                        {% for batch_code in ingredient.batch_codes %}
+                            {% if batch_code.active %}
+                                ({{ batch_code.batch_code }})
+                            {% endif %}
+                        {% endfor %}
+                    </h4></li>
+                {% endif %}
+            {% endfor %}
+            </ol>
+        </div>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="column">
+        <h2>{{ product.name }}:</h2>
+        <ol>
+        {% for ingredient in ingredients %}
+            <li><h4><a href="{{ url_for('ingredient', ingredient_id=ingredient.id) }}">{{ ingredient.name }}</a></h4></li>
+        {% endfor %}
+        </ol>
+        <h5><a href="{{ url_for('product_list') }}">Back</a></h5>
+    </div>
+{% endblock %}

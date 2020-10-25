@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <div class="column">
+        <h3>{{ selected_day.date.strftime('%d-%m-%Y') }} {{ selected_day.batch }}</h3>
+        <table>
+            <tr>
+                <th>Product</th>
+                <th>Cooking Start time</th>
+                <th>Cooking Finish time</th>
+                <th>Core Temp</th>
+            </tr>
+            {% for product in cooked_products %}
+            <tr>
+                <td>{{ product.name }}</td>
+                {% for process in product.processes %}
+                    {% if process.process_type == 'cooking' %}
+                        <td>{{ process.start_time }}</td>
+                        <td>{{ process.finish_time }}</td>
+                        <td>{{ process.temperature }}&degC</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}
