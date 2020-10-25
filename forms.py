@@ -1,5 +1,7 @@
 from flask_wtf import FlaskForm, Form
-from wtforms import StringField, widgets, SelectMultipleField, FormField, SelectField, TimeField, IntegerField
+from wtforms import (StringField, widgets, SelectMultipleField, FormField,
+                     SelectField)
+from wtforms.fields.html5 import DateField, TimeField, IntegerField
 from wtforms.validators import DataRequired, ValidationError, Length
 from config import INGREDIENT_CATEGORY
 
@@ -81,4 +83,11 @@ class ProcessDetails(FlaskForm):
         validators=[
             DataRequired()
         ]
+    )
+
+
+class SelectDateForm(FlaskForm):
+    date = DateField(
+        'Select Date',
+        format='%Y-%m-%d'
     )

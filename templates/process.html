@@ -6,7 +6,7 @@
         <a href="{{ url_for('production_day', process_type=process_type) }}"><strong>Start</strong></a>
     {% else %}
         <div class="column">
-            <h3>Date: {{ production_day.date }} Batch: {{ production_day.batch }}</h3>
+            <h3>Date: {{ production_day.date.strftime('%d-%m-%Y') }} Batch: {{ production_day.batch }}</h3>
             {% if process_type != 'cooling' %}
                 <form action="{{ url_for('process', process_type=process_type) }}" method="post" class="row" style="justify-content: center">
                     {{ form.hidden_tag() }}

@@ -44,7 +44,7 @@ def index():
 @app.route('/production_day/<process_type>')
 def production_day(process_type):
     models.ProductionDay.create(
-        date=datetime.date.today().strftime('%x'),
+        date=datetime.date.today(),
         batch=datetime.date.today().strftime('%y%j')
     )
     return redirect(url_for('process', process_type=process_type))
@@ -121,7 +121,7 @@ def deactivate_batch_code(batch_code_id, ingredient_id):
 
 @app.route('/process/<process_type>', methods=['POST', 'GET'])
 def process(process_type):
-    production_day = models.ProductionDay.get_or_none(date=datetime.date.today())
+    today = models.ProductionDay.get_or_none(date=datetime.date.today())
     forms.PickProduct.product = forms.SelectField('Product', choices=[x.name for x in models.Product.select()])
     form = forms.PickProduct()
     cooked_products = models.CookedProduct.select()
@@ -140,14 +140,13 @@ def process(process_type):
                 process_type=process_type,
                 product=product
             )
-
         product = models.Product.get(name=form.product.data)
         ingredients = product.get_ingredients()
         for i in ingredients:
             print(i.product.name, i.ingredient.name)
 
     return render_template('process.html', form=form, cooked_products=cooked_products,
-                           process_type=process_type, production_day=production_day)
+                           process_type=process_type, production_day=today)
 
 
 @app.route('/update_process/<process_id>', methods=['POST', 'GET'])
@@ -191,9 +190,20 @@ def update_process(process_id):
     return redirect(url_for('process', process_type=process_to_update.process_type))
 
 
-@app.route('/low-risk')
+@app.route('/low-risk', methods=['GET', 'POST'])
 def low_risk():
-    pass
+    form = forms.SelectDateForm()
+    select_production_day = models.ProductionDay.select()
+    if form.validate_on_submit():
+        select_production_day = models.ProductionDay.select().where(models.ProductionDay.date == form.date.data)
+    return render_template('low_risk.html', form=form, select_production_day=select_production_day)
+
+
+@app.route('/show_day_details/<day_id>')
+def show_day_details(day_id):
+    selected_day = models.ProductionDay.get(id=day_id)
+    cooked_products = models.CookedProduct.select().where(models.CookedProduct.date == selected_day.date)
+    return render_template('show_day_details.html', selected_day=selected_day, cooked_products=cooked_products)
 
 
 if __name__ == '__main__':
