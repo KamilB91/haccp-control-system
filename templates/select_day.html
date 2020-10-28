@@ -12,7 +12,7 @@
         </form>
         {% for day in select_production_day %}
         <div class="row">
-            <a href="{{ url_for('show_day_details', day_id=day.id) }}"><h5>{{ day.date }}</h5></a>
+            <a href="{{ url_for('show_day_details', day_id=day.id, area=area) }}"><h5>{{ day.date }}</h5></a>
             <h5>{{ day.batch }}</h5>
         </div>
         {% endfor %}

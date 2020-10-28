@@ -168,10 +168,11 @@ def update_process(process_id):
                 process_type='cooling',
                 product=product
             )
-
+        return_to = process_to_update.process_type
         try:
             if request.form['process']:
                 process_to_update.process_type = request.form['process']
+                return_to = 'assembly-cooking'
                 if request.form['process'] == 'assembly-assembly':
                     models.Process.create(
                         process_type='assembly-cooking',
@@ -182,29 +183,28 @@ def update_process(process_id):
                         process_type='cooling',
                         product=product
                     )
-
         except KeyError:
             pass
 
         process_to_update.save()
 
-    return redirect(url_for('process', process_type=process_to_update.process_type))
+        return redirect(url_for('process', process_type=return_to))
 
 
-@app.route('/low-risk', methods=['GET', 'POST'])
-def low_risk():
+@app.route('/select_day/<area>', methods=['GET', 'POST'])
+def select_day(area):
     form = forms.SelectDateForm()
     select_production_day = models.ProductionDay.select()
     if form.validate_on_submit():
         select_production_day = models.ProductionDay.select().where(models.ProductionDay.date == form.date.data)
-    return render_template('low_risk.html', form=form, select_production_day=select_production_day)
+    return render_template('select_day.html', form=form, select_production_day=select_production_day, area=area)
 
 
-@app.route('/show_day_details/<day_id>')
-def show_day_details(day_id):
+@app.route('/show_day_details/<day_id>/<area>')
+def show_day_details(day_id, area):
     selected_day = models.ProductionDay.get(id=day_id)
     cooked_products = models.CookedProduct.select().where(models.CookedProduct.date == selected_day.date)
-    return render_template('show_day_details.html', selected_day=selected_day, cooked_products=cooked_products)
+    return render_template('show_day_details.html', selected_day=selected_day, cooked_products=cooked_products, area=area)
 
 
 if __name__ == '__main__':

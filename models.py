@@ -114,14 +114,16 @@ def initialize():
 
 
 def test():
+    """
     product = Product.get(name='Lasagne')
     ingredients = product.get_ingredients()
     for i in ingredients:
         print(i.product.name, i.ingredient.name)
     """
+    """
     DB.connect()
     processes = Process.select()
     for process in processes:
-        print(process.process_type, process.start_time, process.finish_time, process.temperature, process.product.name)
-    DB.close()
+        print(process.id, process.process_type, process.start_time, process.finish_time, process.temperature,
+              process.product.id, process.product.name)
     """

@@ -3,37 +3,40 @@
     <head>
         <meta charset="UTF-8">
         <title>Kilbride</title>
-        <link rel="stylesheet" type="text/css" href="../static/css/style.css">
-        <script src="../static/js/script.js"></script>
+        <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+        <script src="/static/js/script.js"></script>
     </head>
     <body class="column">
         <header>
             <div>
                 <a href="{{ url_for('index') }}"><h1 class="title">HACCP System</h1></a>
             </div>
-            <nav class="row" style="background-color: rgba(79, 89, 104, 1)">
-                <a href="{{ url_for('process', process_type='cooking') }}" class="room-anchor">Kitchen</a>
-                <a href="{{ url_for('process', process_type='assembly-cooking') }}" class="room-anchor">Assembly</a>
-                <a href="{{ url_for('process', process_type='cooling') }}" class="room-anchor">Packing room</a>
-            </nav>
         </header>
         <main>
-            <div class="left-nav">
-                <h3>Manage:</h3>
-                <a href="{{ url_for('add_ingredient') }}" style="margin-bottom: 10px;">Add ingredient</a>
-                <a href="{{ url_for('add_product') }}" style="margin-bottom: 10px;">Add product</a>
-                <a href="{{ url_for('ingredients_list') }}" style="margin-bottom: 10px;">Menage batch code</a>
-                <a href="{{ url_for('product_list') }}" style="margin-bottom: 10px;">Products</a>
-                <a href="{{ url_for('low_risk') }}">7.9 Low risk area</a>
+            <div class="sidebar">
+                <h3 style="text-align: center">Manage:</h3>
+                <a href="{{ url_for('add_ingredient') }}">Add ingredient</a>
+                <a href="{{ url_for('add_product') }}">Add product</a>
+                <a href="{{ url_for('ingredients_list') }}">Menage batch code</a>
+                <a href="{{ url_for('product_list') }}">Products</a>
+                <a href="{{ url_for('select_day', area='low_risk') }}">7.9 Low Risk area</a>
+                <a href="{{ url_for('select_day', area='high_care') }}">7.9 High Care area</a>
+                <a href="{{ url_for('select_day', area='high_risk') }}">7.9 High Risk area</a>
             </div>
-            <div class="row" style="justify-content: flex-start; background-color: rgba(79, 89, 104, 1)">
-                {% block content %}
-                    <p>hello</p>
-                {% endblock %}
+            <div class="content">
+                <nav class="row" style="background-color: rgba(79, 89, 104, 1)">
+                    <a href="{{ url_for('process', process_type='cooking') }}">Kitchen</a>
+                    <a href="{{ url_for('process', process_type='assembly-cooking') }}">Assembly</a>
+                    <a href="{{ url_for('process', process_type='cooling') }}">Packing room</a>
+                </nav>
+                <div class="row" style="justify-content: flex-start; background-color: rgba(79, 89, 104, 1)">
+                    {% block content %}
+                        <p>hello</p>
+                    {% endblock %}
+                </div>
             </div>
         </main>
         <footer>
-            <h6>Created by Kamil Borowski</h6>
         </footer>
     </body>
 </html>

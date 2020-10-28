@@ -2,26 +2,136 @@
 
 {% block content %}
     <div class="column">
-        <h3>{{ selected_day.date.strftime('%d-%m-%Y') }} {{ selected_day.batch }}</h3>
-        <table>
-            <tr>
-                <th>Product</th>
-                <th>Cooking Start time</th>
-                <th>Cooking Finish time</th>
-                <th>Core Temp</th>
-            </tr>
-            {% for product in cooked_products %}
-            <tr>
-                <td>{{ product.name }}</td>
-                {% for process in product.processes %}
-                    {% if process.process_type == 'cooking' %}
-                        <td>{{ process.start_time }}</td>
-                        <td>{{ process.finish_time }}</td>
-                        <td>{{ process.temperature }}&degC</td>
-                    {% endif %}
+        {% if area == 'low_risk' %}
+            <table>
+                <tr>
+                    <th>{{ area }}</th>
+                    <th>{{ selected_day.date.strftime('%d-%m-%Y') }}</th>
+                    <th>{{ selected_day.batch }}</th>
+                </tr>
+                <tr>
+                    <th>Product</th>
+                    <th>Cooking Start time</th>
+                    <th>Cooking Finish time</th>
+                    <th>Core Temp</th>
+                </tr>
+                {% for product in cooked_products %}
+                <tr>
+                    {% for process in product.processes %}
+                        {% if process.process_type == 'cooking' %}
+                            <td>{{ product.name }}</td>
+                            <td>{{ process.start_time }}</td>
+                            <td>{{ process.finish_time }}</td>
+                            <td>{{ process.temperature }}&degC</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
                 {% endfor %}
-            </tr>
-            {% endfor %}
-        </table>
+            </table>
+        {% endif %}
+        {% if area == 'high_care' %}
+            <div class="row">
+                <table>
+                    <tr>
+                        <th>{{ area }}</th>
+                        <th>{{ selected_day.date.strftime('%d-%m-%Y') }}</th>
+                        <th>{{ selected_day.batch }}</th>
+                    </tr>
+                    <tr>
+                        <th>Product</th>
+                        <th>Assembly Start time</th>
+                        <th>Assembly Finish time</th>
+                    </tr>
+                    {% for product in cooked_products %}
+                    <tr>
+                    {% for process in product.processes %}
+                        {% if process.process_type == 'assembly-assembly' or process.process_type == 'cooling-cooling' %}
+                            <td>{{ product.name }}</td>
+                            <td>{{ process.start_time }}</td>
+                            <td>{{ process.finish_time }}</td>
+                        {% endif %}
+                    {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </table>
+                <table>
+                    <tr>
+                        <th>{{ area }}</th>
+                        <th>{{ selected_day.date.strftime('%d-%m-%Y') }}</th>
+                        <th>{{ selected_day.batch }}</th>
+                    </tr>
+                    <tr>
+                        <th>Product</th>
+                        <th>Cooking Start time</th>
+                        <th>Cooking Finish time</th>
+                        <th>Core temp</th>
+                    </tr>
+                    {% for product in cooked_products %}
+                        <tr>
+                        {% for process in product.processes %}
+                            {% if process.process_type == 'assembly-cooking' %}
+                                <td>{{ product.name }}</td>
+                                <td>{{ process.start_time }}</td>
+                                <td>{{ process.finish_time }}</td>
+                                <td>{{ process.temperature }}&degC</td>
+                            {% endif %}
+                        {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+                <table>
+                    <tr>
+                        <th>{{ area }}</th>
+                        <th>{{ selected_day.date.strftime('%d-%m-%Y') }}</th>
+                        <th>{{ selected_day.batch }}</th>
+                    </tr>
+                    <tr>
+                        <th>Product</th>
+                        <th>Cooling Start time</th>
+                        <th>Cooling Finish time</th>
+                        <th>Core Temp</th>
+                    </tr>
+                    {% for product in cooked_products %}
+                    <tr>
+                        {% for process in product.processes %}
+                            {% if process.process_type == 'assembly-cooling' %}
+                                <td>{{ product.name }}</td>
+                                <td>{{ process.start_time }}</td>
+                                <td>{{ process.finish_time }}</td>
+                                <td>{{ process.temperature }}&degC</td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        {% endif %}
+        {% if area == 'high_risk' %}
+            <table>
+                <tr>
+                    <th>{{ area }}</th>
+                    <th>{{ selected_day.date.strftime('%d-%m-%Y') }}</th>
+                    <th>{{ selected_day.batch }}</th>
+                </tr>
+                <tr>
+                    <th>Product</th>
+                    <th>Cooling Start time</th>
+                    <th>Cooling Finish time</th>
+                    <th>Core Temp</th>
+                </tr>
+                {% for product in cooked_products %}
+                <tr>
+                    {% for process in product.processes %}
+                        {% if process.process_type == 'cooling' %}
+                            <td>{{ product.name }}</td>
+                            <td>{{ process.start_time }}</td>
+                            <td>{{ process.finish_time }}</td>
+                            <td>{{ process.temperature }}&degC</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
     </div>
 {% endblock %}
