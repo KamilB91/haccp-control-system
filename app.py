@@ -4,6 +4,7 @@ import datetime
 import models
 import forms
 from config import INGREDIENT_CATEGORY
+import tables
 
 app = Flask(__name__)
 app.secret_key = 'nHJBKJhkj3uhun3enml,;LK@JiwnNme,,e2moke2e,l1moiouUu2m3oiIIOII(&&uh42*@'
@@ -87,7 +88,9 @@ def product_list(product=None):
     if product:
         product = models.Product.get(name=product)
         ingredients = (x.ingredient for x in product.get_ingredients())
-        return render_template('product.html', product=product, ingredients=ingredients)
+        return render_template('product.html',
+                               product=product,
+                               ingredients=ingredients)
     else:
         products = models.Product.select()
         return render_template('products_list.html', products=products)
@@ -102,13 +105,17 @@ def ingredient(ingredient_id):
             batch_code=form.batch_code.data,
             ingredient=ingredient
         )
-    return render_template('ingredient.html', form=form, ingredient=ingredient)
+    return render_template('ingredient.html',
+                           form=form,
+                           ingredient=ingredient)
 
 
 @app.route('/ingredients_list')
 def ingredients_list():
     ingredients = models.Ingredient.select()
-    return render_template('ingredients_list.html', ingredients=ingredients, categories=INGREDIENT_CATEGORY)
+    return render_template('ingredients_list.html',
+                           ingredients=ingredients,
+                           categories=INGREDIENT_CATEGORY)
 
 
 @app.route('/deactivate_batch_code/<batch_code_id>/<ingredient_id>')
@@ -122,7 +129,8 @@ def deactivate_batch_code(batch_code_id, ingredient_id):
 @app.route('/process/<process_type>', methods=['POST', 'GET'])
 def process(process_type):
     today = models.ProductionDay.get_or_none(date=datetime.date.today())
-    forms.PickProduct.product = forms.SelectField('Product', choices=[x.name for x in models.Product.select()])
+    forms.PickProduct.product = forms.SelectField('Product',
+                                                  choices=[x.name for x in models.Product.select()])
     form = forms.PickProduct()
     # select all products
     cooked_products = models.CookedProduct.select()
@@ -133,6 +141,18 @@ def process(process_type):
             name=form.product.data,
             date=datetime.date.today()
         )
+        # TODO .join method
+        used_ingredients = [x.ingredient for x in models.Product.get(name=product.name).get_ingredients()]
+        for ingredient in used_ingredients:
+            batch_code = [batch for batch in ingredient.get_batch_codes() if batch.active]
+            print(batch_code[0].batch_code)
+            models.UsedIngredient.create_used_ingredient(
+                name=ingredient.name,
+                batch=batch_code[0].batch_code,
+                type=ingredient.category,
+                date=datetime.date.today()
+            )
+
         # if process_type comes from assembly, process creates without process type,
         # that will be chosen later in update_process via select part of form for each product process in processes.html
         if process_type == 'assembly-cooking':
@@ -146,8 +166,11 @@ def process(process_type):
                 product=product
             )
 
-    return render_template('process.html', form=form, cooked_products=cooked_products,
-                           process_type=process_type, production_day=today)
+    return render_template('process.html',
+                           form=form,
+                           cooked_products=cooked_products,
+                           process_type=process_type,
+                           production_day=today)
 
 
 @app.route('/update_process/<process_id>', methods=['POST', 'GET'])
@@ -191,20 +214,38 @@ def update_process(process_id):
         return redirect(url_for('process', process_type=return_to))
 
 
-@app.route('/select_day/<area>', methods=['GET', 'POST'])
-def select_day(area):
+@app.route('/select_day', methods=['GET', 'POST'])
+def select_day():
     form = forms.SelectDateForm()
     select_production_day = models.ProductionDay.select()
     if form.validate_on_submit():
         select_production_day = models.ProductionDay.select().where(models.ProductionDay.date == form.date.data)
-    return render_template('select_day.html', form=form, select_production_day=select_production_day, area=area)
+    return render_template('select_day.html',
+                           form=form,
+                           select_production_day=select_production_day)
 
 
-@app.route('/show_day_details/<day_id>/<area>')
-def show_day_details(day_id, area):
+@app.route('/show_day_details/<day_id>')
+def show_day_details(day_id):
     selected_day = models.ProductionDay.get(id=day_id)
     cooked_products = models.CookedProduct.select().where(models.CookedProduct.date == selected_day.date)
-    return render_template('show_day_details.html', selected_day=selected_day, cooked_products=cooked_products, area=area)
+    return render_template('show_day_details.html',
+                           selected_day=selected_day,
+                           cooked_products=cooked_products)
+
+
+@app.route('/ingredient_traceability/<day_id>')
+def ingredient_traceability(day_id):
+    table = tables.IngredientTraceabilityTable
+    selected_day = models.ProductionDay.get(id=day_id)
+    cooked_products = models.CookedProduct.select().where(models.CookedProduct.date == selected_day.date)
+    used_ingredients = models.UsedIngredient.select().where(models.UsedIngredient.date == selected_day.date)
+    return render_template('ingredient_traceability.html',
+                           selected_day=selected_day,
+                           cooked_products=cooked_products,
+                           used_ingredients=used_ingredients,
+                           categories=INGREDIENT_CATEGORY,
+                           table=table(used_ingredients))
 
 
 if __name__ == '__main__':

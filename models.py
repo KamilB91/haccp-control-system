@@ -89,7 +89,19 @@ class Process(BaseModel):
 class UsedIngredient(BaseModel):
     name = CharField()
     batch = CharField()
+    type = CharField()
     date = DateField()
+
+    @classmethod
+    def create_used_ingredient(cls, name, batch, type, date):
+        if not UsedIngredient.get_or_none(name=name, batch=batch, date=date):
+            with DB.transaction():
+                cls.create(
+                    name=name,
+                    batch=batch,
+                    type=type,
+                    date=date,
+                )
 
 
 class ProductionDay(BaseModel):

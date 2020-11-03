@@ -12,8 +12,9 @@
         </form>
         {% for day in select_production_day %}
         <div class="row">
-            <a href="{{ url_for('show_day_details', day_id=day.id, area=area) }}"><h5>{{ day.date }}</h5></a>
-            <h5>{{ day.batch }}</h5>
+            <a href="{{ url_for('show_day_details', day_id=day.id) }}"><h5>7.9 Haccp</h5></a>
+            <a href="{{ url_for('ingredient_traceability', day_id=day.id) }}">4.28 Ingredient Traceability</a>
+            <h5>{{ day.date }} {{ day.batch }}</h5>
         </div>
         {% endfor %}
     </div>
