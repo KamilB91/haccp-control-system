@@ -8,5 +8,10 @@ class IngredientTraceabilityTable(Table):
 
 class AssemblyTable(Table):
     product_name = Col('name')
-    assembly_start_time = Col('start time')
-    assembly_finish_time = Col('Assembly finish time')
+    start_time = Col('start time')
+    finish_time = Col('Assembly finish time')
+
+
+class TraceTable(Table):
+    name = Col('name')
+    batch = Col('batch')

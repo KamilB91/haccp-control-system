@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+    {{ table }}
     {% for category in categories %}
         <div class="column" style="width: 20%;">
             <h3 style="padding-left: 10px">{{ category }}:</h3>

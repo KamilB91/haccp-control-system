@@ -112,8 +112,14 @@ def ingredient(ingredient_id):
 
 @app.route('/ingredients_list')
 def ingredients_list():
+    table = tables.TraceTable
     ingredients = models.Ingredient.select()
+    ingredients_tuple = []
+    for ingredient in ingredients:
+        batch_code = [batch_code.batch_code for batch_code in ingredient.batch_codes if batch_code.active]
+        ingredients_tuple.append(dict(name=ingredient.name, batch=batch_code[0]))
     return render_template('ingredients_list.html',
+                           table=table(ingredients_tuple),
                            ingredients=ingredients,
                            categories=INGREDIENT_CATEGORY)
 
@@ -132,17 +138,25 @@ def process(process_type):
     forms.PickProduct.product = forms.SelectField('Product',
                                                   choices=[x.name for x in models.Product.select()])
     form = forms.PickProduct()
-    # select all products
-    cooked_products = models.CookedProduct.select()
+    process = None
+
     if form.validate_on_submit():
         # this form in process.html is not provided for Packing room(process_type=cooling)
         # creates a product to be cooked and its first process
-        product = models.CookedProduct.create(
-            name=form.product.data,
-            date=datetime.date.today()
-        )
+        if process_type == 'assembly-cooking':
+            process = models.Process.create(
+                product_name=form.product.data,
+                date=datetime.date.today()
+            )
+        elif process_type == 'cooking':
+            # if process_type came from the kitchen then process is created with process_type of 'cooking'
+            process = models.Process.create(
+                product_name=form.product.data,
+                process_type=process_type,
+                date=datetime.date.today()
+            )
         # TODO .join method
-        used_ingredients = [x.ingredient for x in models.Product.get(name=product.name).get_ingredients()]
+        used_ingredients = [x.ingredient for x in models.Product.get(name=process.product_name).get_ingredients()]
         for ingredient in used_ingredients:
             batch_code = [batch for batch in ingredient.get_batch_codes() if batch.active]
             print(batch_code[0].batch_code)
@@ -155,20 +169,14 @@ def process(process_type):
 
         # if process_type comes from assembly, process creates without process type,
         # that will be chosen later in update_process via select part of form for each product process in processes.html
-        if process_type == 'assembly-cooking':
-            models.Process.create(
-                product=product
-            )
-        elif process_type == 'cooking':
-            # if process_type came from the kitchen then process is created with process_type of 'cooking'
-            models.Process.create(
-                process_type=process_type,
-                product=product
-            )
+
+    processes = models.Process.select().where(models.Process.completed == False)
+    for process in processes:
+        print(process.product_name, process.process_type, process.completed)
 
     return render_template('process.html',
                            form=form,
-                           cooked_products=cooked_products,
+                           processes=processes,
                            process_type=process_type,
                            production_day=today)
 
@@ -176,20 +184,22 @@ def process(process_type):
 @app.route('/update_process/<process_id>', methods=['POST', 'GET'])
 def update_process(process_id):
     process_to_update = models.Process.get(id=process_id)
-    product = models.CookedProduct.get(id=process_to_update.product.id)
     if request.method == 'POST':
         process_to_update.start_time = request.form['start']
         process_to_update.finish_time = request.form['finish']
         process_to_update.temperature = request.form['temp']
+        process_to_update.completed = True
 
         if process_to_update.process_type == 'cooking':
             models.Process.create(
-                product=product
+                product_name=process_to_update.product_name,
+                date=datetime.date.today()
             )
         elif process_to_update.process_type == 'assembly-cooking':
             models.Process.create(
+                product_name=process_to_update.product_name,
                 process_type='cooling',
-                product=product
+                date=datetime.date.today()
             )
         return_to = process_to_update.process_type
         try:
@@ -198,13 +208,15 @@ def update_process(process_id):
                 return_to = 'assembly-cooking'
                 if request.form['process'] == 'assembly-assembly':
                     models.Process.create(
+                        product_name=process_to_update.product_name,
                         process_type='assembly-cooking',
-                        product=product
+                        date=datetime.date.today()
                     )
                 elif request.form['process'] == 'cooling-cooling':
                     models.Process.create(
+                        product_name=process_to_update.product_name,
                         process_type='cooling',
-                        product=product
+                        date=datetime.date.today()
                     )
         except KeyError:
             pass
@@ -228,7 +240,7 @@ def select_day():
 @app.route('/show_day_details/<day_id>')
 def show_day_details(day_id):
     selected_day = models.ProductionDay.get(id=day_id)
-    cooked_products = models.CookedProduct.select().where(models.CookedProduct.date == selected_day.date)
+    cooked_products = models.Process.select().where(models.Process.date == selected_day.date)
     return render_template('show_day_details.html',
                            selected_day=selected_day,
                            cooked_products=cooked_products)
@@ -238,12 +250,11 @@ def show_day_details(day_id):
 def ingredient_traceability(day_id):
     table = tables.IngredientTraceabilityTable
     selected_day = models.ProductionDay.get(id=day_id)
-    cooked_products = models.CookedProduct.select().where(models.CookedProduct.date == selected_day.date)
+    cooked_products = models.Process.select().where(models.Process.date == selected_day.date)
     used_ingredients = models.UsedIngredient.select().where(models.UsedIngredient.date == selected_day.date)
     return render_template('ingredient_traceability.html',
                            selected_day=selected_day,
                            cooked_products=cooked_products,
-                           used_ingredients=used_ingredients,
                            categories=INGREDIENT_CATEGORY,
                            table=table(used_ingredients))
 

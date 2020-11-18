@@ -16,14 +16,12 @@
             </tr>
             {% for product in cooked_products %}
             <tr>
-                {% for process in product.processes %}
-                    {% if process.process_type == 'cooking' %}
-                        <td>{{ product.name }}</td>
-                        <td>{{ process.start_time }}</td>
-                        <td>{{ process.finish_time }}</td>
-                        <td>{{ process.temperature }}&degC</td>
-                    {% endif %}
-                {% endfor %}
+                {% if product.process_type == 'cooking' %}
+                    <td>{{ product.product_name }}</td>
+                    <td>{{ product.start_time }}</td>
+                    <td>{{ product.finish_time }}</td>
+                    <td>{{ product.temperature }}&degC</td>
+                {% endif %}
             </tr>
             {% endfor %}
         </table>

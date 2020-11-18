@@ -69,21 +69,14 @@ class ProductIngredient(BaseModel):
     ingredient = ForeignKeyField(Ingredient, backref='ingredients')
 
 
-# models to control production processes
-class CookedProduct(BaseModel):
-    name = CharField()
-    date = DateField()
-
-    def get_processes(self):
-        return Process.select().where(Process.product == self)  # to delete
-
-
 class Process(BaseModel):
+    product_name = CharField()
     process_type = CharField(null=True)
     start_time = TimeField(null=True)
     finish_time = TimeField(null=True)
+    completed= BooleanField(default=False)
     temperature = IntegerField(null=True)
-    product = ForeignKeyField(CookedProduct, backref='processes')
+    date = DateField()
 
 
 class UsedIngredient(BaseModel):
@@ -109,7 +102,7 @@ class ProductionDay(BaseModel):
     batch = CharField()
 
     def cooked_products(self):
-        return CookedProduct.select().where(CookedProduct.date == self.date)
+        return Process.select().where(Process.date == self.date)
 
     def used_ingredients(self):
         return UsedIngredient.select().where(UsedIngredient.date == self.date)
@@ -121,7 +114,7 @@ def initialize():
 
     DB.connect()
     DB.create_tables([User, Product, Ingredient, BatchCode, ProductIngredient,
-                      CookedProduct, Process, UsedIngredient, ProductionDay], safe=True)
+                      Process, UsedIngredient, ProductionDay], safe=True)
     DB.close()
 
 

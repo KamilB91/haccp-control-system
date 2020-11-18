@@ -21,15 +21,13 @@
             <div class="column">
             {% set pt = process_type.split('-') %}
             <h3>{{ pt[0].capitalize() }}</h3>
-            {% for product in cooked_products %}
-                {% set processes = product.processes %}
                 {% for process in processes %}
-                    {% if (process.process_type == process_type and process.process_type != 'assembly-cooking' and process.finish_time == None)
+                    {% if (process.process_type == process_type and process.process_type != 'assembly-cooking' and not process.completed)
                             or (process_type == 'assembly-cooking' and process.process_type == None)
                             or (process_type == 'assembly-cooking' and process.process_type == 'assembly-assembly'
-                                                                   and process.finish_time == None) %}
+                                                                   and not process.completed) %}
                         <form class="row" action="{{ url_for('update_process', process_id=process.id) }}" method="post">
-                            <label>{{ product.name }}:  </label>
+                            <label>{{ process.product_name }}:  </label>
                             <label for="start">Start: </label>
                             <input id="start" name="start" type="time">
                             <label for="finish">Finish: </label>
@@ -49,15 +47,12 @@
                         </form>
                     {% endif %}
                 {% endfor %}
-            {% endfor %}
             {% if process_type == 'assembly-cooking' %}
                 <h3>{{ pt[1].capitalize() }}</h3>
-                {% for product in cooked_products %}
-                    {% set processes = product.processes %}
                     {% for process in processes %}
-                        {% if process.process_type == 'assembly-cooking' and process.finish_time == None %}
+                        {% if process.process_type == 'assembly-cooking' and not process.completed %}
                             <form class="row" action="{{ url_for('update_process', process_id=process.id) }}" method="post">
-                                <label>{{ product.name }}:  </label>
+                                <label>{{ process.product_name }}:  </label>
                                 <label for="start">Start: </label>
                                 <input id="start" name="start" type="time">
                                 <label for="finish">Finish: </label>
@@ -68,7 +63,6 @@
                             </form>
                         {% endif %}
                     {% endfor %}
-                {% endfor %}
             {% endif %}
             </div>
         </div>
