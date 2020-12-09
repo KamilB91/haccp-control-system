@@ -46,10 +46,11 @@ class Ingredient(BaseModel):
     def create_ingredient(cls, name, category):
         try:
             with DB.transaction():
-                cls.create(
+                x = cls.create(
                     name=name,
                     category=category
                 )
+                return x
         except IntegrityError:
             raise ValueError('Product already exists')
 

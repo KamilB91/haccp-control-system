@@ -27,6 +27,13 @@ class AddIngredientForm(FlaskForm):
             ingredient_exists
         ]
     )
+    batch_code = StringField(
+        'Batch code',
+        validators=[
+            DataRequired(),
+            Length(min=3)
+        ]
+    )
     category = SelectField('Ingredient category', choices=[x for x in INGREDIENT_CATEGORY])
 
 

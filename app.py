@@ -56,9 +56,13 @@ def add_ingredient():
     form = forms.AddIngredientForm()
     if form.validate_on_submit():
         flash("Ingredient added")
-        models.Ingredient.create_ingredient(
+        ingredient = models.Ingredient.create_ingredient(
             name=form.name.data,
             category=form.category.data
+        )
+        models.BatchCode.create(
+            batch_code=form.batch_code.data,
+            ingredient=ingredient
         )
         return redirect(url_for('add_ingredient'))
     return render_template('add_ingredient.html', form=form)
@@ -99,32 +103,60 @@ def product_list(product=None):
 @app.route('/ingredient/<ingredient_id>', methods=['GET', 'POST'])
 def ingredient(ingredient_id):
     form = forms.AddBatchCode()
+    active_batch_table = tables.ActiveBatchCodeTable
+    deactive_batch_table = tables.DeactiveBatchCodeTable
     ingredient = models.Ingredient.get(id=ingredient_id)
+    active_batch_codes = [dict(id=batch_code.id,
+                               ingredient_id=ingredient.id,
+                               batch_code=batch_code.batch_code) for batch_code in ingredient.batch_codes if batch_code.active]
+    deactive_batch_codes = [dict(id=batch_code.id,
+                                 batch_code=batch_code.batch_code) for batch_code in ingredient.batch_codes if not batch_code.active]
     if form.validate_on_submit():
         models.BatchCode.create(
             batch_code=form.batch_code.data,
             ingredient=ingredient
         )
+        return redirect(url_for('ingredient',
+                                ingredient_id=ingredient_id,
+                                table=active_batch_table(active_batch_codes),
+                                not_active_table=deactive_batch_table(deactive_batch_codes),
+                                form=form,
+                                ingredient_name=ingredient.name
+                                )
+                        )
     return render_template('ingredient.html',
+                           table=active_batch_table(active_batch_codes),
+                           not_active_table=deactive_batch_table(deactive_batch_codes),
                            form=form,
-                           ingredient=ingredient)
+                           ingredient_name=ingredient.name
+                           )
 
 
 @app.route('/ingredients_list')
 def ingredients_list():
-    table = tables.TraceTable
+    frozen_table = tables.TraceTable
+    raw_table = tables.TraceTable
+    spice_table = tables.TraceTable
     ingredients = models.Ingredient.select()
-    ingredients_tuple = []
+    frozen_ingredients = []
+    raw_ingredients = []
+    spice_ingredients = []
     for ingredient in ingredients:
         batch_code = [batch_code.batch_code for batch_code in ingredient.batch_codes if batch_code.active]
-        ingredients_tuple.append(dict(name=ingredient.name, batch=batch_code[0]))
+        if ingredient.category == 'Frozen':
+            frozen_ingredients.append(dict(id=ingredient.id, name=ingredient.name, batch=batch_code[0]))
+        elif ingredient.category == 'Raw':
+            raw_ingredients.append(dict(id=ingredient.id, name=ingredient.name, batch=batch_code[0]))
+        elif ingredient.category == 'Spice':
+            spice_ingredients.append(dict(id=ingredient.id, name=ingredient.name, batch=batch_code[0]))
     return render_template('ingredients_list.html',
-                           table=table(ingredients_tuple),
-                           ingredients=ingredients,
-                           categories=INGREDIENT_CATEGORY)
+                           frozen_table=frozen_table(frozen_ingredients),
+                           raw_table=raw_table(raw_ingredients),
+                           spice_table=spice_table(spice_ingredients)
+                           )
 
 
-@app.route('/deactivate_batch_code/<batch_code_id>/<ingredient_id>')
+@app.route('/deactivate_batch_code/<batch_code_id>/<ingredient_id>', methods=['GET', 'POST'])
 def deactivate_batch_code(batch_code_id, ingredient_id):
     batch_code = models.BatchCode.get(id=batch_code_id)
     batch_code.active = False

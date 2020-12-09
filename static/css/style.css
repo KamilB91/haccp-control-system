@@ -19,15 +19,26 @@ body {
 .row {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: space-around;
     align-items: flex-start;
     padding: 10px 10px;
+}
+
+.row div {
+    margin-right: 10px;
 }
 
 .column {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
+}
+
+.table-header {
+    border: rgba(82, 92, 107, 1) solid 5px;
+    border-radius: 20px;
+    text-align: center;
 }
 
 nav a {
